@@ -56,16 +56,12 @@ class TestGetCommandsToRunJunOS(unittest.TestCase):
                 "post_processor": "{{ (obj | selectattr('enabled', 'eq', 'up') | list | first ).name }}",
             },
         ]
+
+        self.logger.info("Commands to run: %s expected: %s", len(get_commands_to_run), len(expected_commands_to_run))
         self.assertEqual(get_commands_to_run, expected_commands_to_run)
 
     def test_deduplicate_command_list_sync_data_no_vrfs_no_vlans_junos(self):
-        """Test dedup on sync_network_data ssot job."""
-        # stream_handler = logging.StreamHandler(sys.stdout)
-        # logger.addHandler(stream_handler)
-        # print("AAAA")
-        # logger.info("BBBB")
-        # logger.removeHandler(stream_handler)
-
+        """Test dedup on sync_network_data ssot job."""        
         get_commands_to_run = _get_commands_to_run(
             self.expected_data["sync_network_data"],
             sync_vlans=False,
