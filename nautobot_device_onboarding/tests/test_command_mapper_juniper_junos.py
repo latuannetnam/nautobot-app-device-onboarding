@@ -1,8 +1,9 @@
 """Test for Juniper JunOS command mapper configuration."""
-
+import sys
 import os
 import unittest
 import yaml
+import logging
 
 from nautobot_device_onboarding.nornir_plays.command_getter import _get_commands_to_run
 
@@ -14,8 +15,17 @@ class TestJuniperJunosCommandMapper(unittest.TestCase):
 
     def setUp(self):
         """Set up test case with Juniper JunOS command mapper data."""
+        self.logger = logging.getLogger(__name__)
+        self.logger.level = logging.DEBUG
+        self.stream_handler = logging.StreamHandler(sys.stdout)
+        self.logger.addHandler(self.stream_handler)
+        self.logger.info("Setup %s\n", self._testMethodName)
         with open(f"{MOCK_DIR}/command_mappers/juniper_junos.yml", "r", encoding="utf-8") as mapper_file:
             self.command_mapper_data = yaml.safe_load(mapper_file)
+    
+    def tearDown(self) -> None:
+        self.logger.removeHandler(self.stream_handler)
+        return super().tearDown()
 
     def test_sync_devices_command_deduplication(self):
         """Test command deduplication for sync_devices job type."""
