@@ -1,4 +1,8 @@
-"""Test for Juniper JunOS command getter result extraction."""
+"""Test for Juniper JunOS command getter result extraction.
+
+This module tests command getter extraction functionality for Juniper JunOS devices
+using the unified logging utilities from nautobot_device_onboarding.tests.utils.
+"""
 import json
 import os
 import sys
@@ -8,28 +12,35 @@ import logging
 
 from nautobot_device_onboarding.nornir_plays.formatter import extract_and_post_process
 from nautobot_device_onboarding.nornir_plays.command_getter import _get_commands_to_run
+from nautobot_device_onboarding.tests.utils import setup_command_getter_logging, cleanup_command_getter_logging
 
 MOCK_DIR = os.path.join("nautobot_device_onboarding", "tests", "mock")
 
 
-class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
+class BaseCommandGetterTest(unittest.TestCase):
+    """Base test class with unified logging setup for command getter tests.
+    
+    This class provides a consistent logging configuration that can be inherited
+    by other command getter test classes to maintain uniform logging behavior.
+    """
+    
+    def setup_unified_logging(self):
+        """Set up unified logging using the utility function from utils."""
+        return setup_command_getter_logging(self.__class__.__module__)
+    
+    def cleanup_unified_logging(self, main_logger, etl_logger, handler):
+        """Clean up unified logging using the utility function from utils."""
+        cleanup_command_getter_logging(main_logger, etl_logger, handler)
+
+
+class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
     """Test extraction of command getter results for Juniper JunOS devices."""
 
     def setUp(self):
         """Set up test case with Juniper JunOS command mapper and command getter result data."""
-        self.logger = logging.getLogger(__name__)
-        self.logger.level = logging.DEBUG
-        self.stream_handler = logging.StreamHandler(sys.stdout)
-        self.logger.addHandler(self.stream_handler)
+        # Set up unified logging using base class method
+        self.logger, self.etl_logger, self.unified_handler = self.setup_unified_logging()
         self.logger.info("Setup %s\n", self._testMethodName)
-        
-        # Also configure the ETL logger that extract_and_post_process uses
-        self.etl_logger = logging.getLogger("DEVICE_ONBOARDING_ETL_LOGGER")
-        self.etl_logger.setLevel(logging.DEBUG)
-        if not self.etl_logger.handlers:
-            etl_handler = logging.StreamHandler(sys.stdout)
-            etl_handler.setFormatter(logging.Formatter('[ETL] %(levelname)s: %(message)s'))
-            self.etl_logger.addHandler(etl_handler)
         
         # Load command mapper
         with open(f"{MOCK_DIR}/command_mappers/juniper_junos.yml", "r", encoding="utf-8") as mapper_file:
@@ -40,10 +51,8 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
             self.command_getter_result = json.load(result_file)
     
     def tearDown(self) -> None:
-        self.logger.removeHandler(self.stream_handler)
-        # Clean up ETL logger handlers
-        for handler in self.etl_logger.handlers[:]:
-            self.etl_logger.removeHandler(handler)
+        """Clean up unified logging setup using base class method."""
+        self.cleanup_unified_logging(self.logger, self.etl_logger, self.unified_handler)
         return super().tearDown()
 
     def test_extract_interface_type(self):
