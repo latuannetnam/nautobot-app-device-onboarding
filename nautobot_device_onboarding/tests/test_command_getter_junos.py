@@ -23,6 +23,14 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
         self.logger.addHandler(self.stream_handler)
         self.logger.info("Setup %s\n", self._testMethodName)
         
+        # Also configure the ETL logger that extract_and_post_process uses
+        self.etl_logger = logging.getLogger("DEVICE_ONBOARDING_ETL_LOGGER")
+        self.etl_logger.setLevel(logging.DEBUG)
+        if not self.etl_logger.handlers:
+            etl_handler = logging.StreamHandler(sys.stdout)
+            etl_handler.setFormatter(logging.Formatter('[ETL] %(levelname)s: %(message)s'))
+            self.etl_logger.addHandler(etl_handler)
+        
         # Load command mapper
         with open(f"{MOCK_DIR}/command_mappers/juniper_junos.yml", "r", encoding="utf-8") as mapper_file:
             self.command_mapper_data = yaml.safe_load(mapper_file)
@@ -33,6 +41,9 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
     
     def tearDown(self) -> None:
         self.logger.removeHandler(self.stream_handler)
+        # Clean up ETL logger handlers
+        for handler in self.etl_logger.handlers[:]:
+            self.etl_logger.removeHandler(handler)
         return super().tearDown()
 
     def test_extract_interface_type(self):
@@ -51,7 +62,7 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
             command_config,
             {"current_key": current_key, "obj": "192.0.2.1", "original_host": "192.0.2.1"},
             interfaces_type_config.get("iterable_type"),
-            False,
+            job_debug=True,  # Enable debug logging
         )
         
         # Should extract interface type for xe-0/0/0
@@ -73,7 +84,7 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
             command_config,
             {"current_key": current_key, "obj": "192.0.2.1", "original_host": "192.0.2.1"},
             interfaces_desc_config.get("iterable_type"),
-            False,
+            True,  # Enable debug logging
         )
         
         # Should return either a string or empty list (when no data is found)
@@ -103,7 +114,7 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
             command_config,
             {"current_key": current_key, "obj": "192.0.2.1", "original_host": "192.0.2.1"},
             interfaces_mtu_config.get("iterable_type"),
-            False,
+            True,  # Enable debug logging
         )
         
         # Should return either a string or empty list (when no data is found)
@@ -131,7 +142,7 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
             command_config,
             {"current_key": current_key, "obj": "192.0.2.1", "original_host": "192.0.2.1"},
             interfaces_mac_config.get("iterable_type"),
-            False,
+            True,  # Enable debug logging
         )
         
         # Should return MAC address or empty list
@@ -152,7 +163,7 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
             command_config,
             {"current_key": current_key, "obj": "192.0.2.1", "original_host": "192.0.2.1"},
             interfaces_status_config.get("iterable_type"),
-            False,
+            True,  # Enable debug logging
         )
         
         # Should return boolean-like value as string
@@ -174,7 +185,7 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
             command_config,
             {"current_key": current_key, "obj": "192.0.2.1", "original_host": "192.0.2.1"},
             interfaces_lag_config.get("iterable_type"),
-            False,
+            True,  # Enable debug logging
         )
         
         # Should return LAG interface name or empty value
@@ -195,7 +206,7 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
             command_config,
             {"current_key": current_key, "obj": "192.0.2.1", "original_host": "192.0.2.1"},
             interfaces_ip_config.get("iterable_type"),
-            False,
+            True,  # Enable debug logging
         )
         
         # Should return IP address data structure or empty list
@@ -213,7 +224,7 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
             command_config,
             {"obj": "192.0.2.1", "original_host": "192.0.2.1"},
             interfaces_config.get("iterable_type"),
-            False,
+            True,  # Enable debug logging
         )
         
         # Should return JSON string of interfaces or other valid types
@@ -253,7 +264,7 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
                 command_config,
                 context,
                 serial_config.get("iterable_type"),
-                False,
+                True,  # Enable debug logging
             )
             
             # Should return serial number as string
@@ -345,7 +356,7 @@ class TestJuniperJunosCommandGetterExtraction(unittest.TestCase):
                     interfaces_type_config["commands"][0],
                     {"current_key": interface, "obj": "192.0.2.1", "original_host": "192.0.2.1"},
                     interfaces_type_config.get("iterable_type"),
-                    False,
+                    True,  # Enable debug logging
                 )
                 
                 # Should return a string type
