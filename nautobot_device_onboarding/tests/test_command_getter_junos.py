@@ -40,14 +40,14 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
         """Set up test case with Juniper JunOS command mapper and command getter result data."""
         # Set up unified logging using base class method
         self.logger, self.etl_logger, self.unified_handler = self.setup_unified_logging()
-        self.logger.info("Setup %s\n", self._testMethodName)
+        self.logger.info("\nSetup %s\n", self._testMethodName)
         
         # Load command mapper
         with open(f"{MOCK_DIR}/command_mappers/juniper_junos.yml", "r", encoding="utf-8") as mapper_file:
             self.command_mapper_data = yaml.safe_load(mapper_file)
         
         # Load command getter result
-        with open(f"{MOCK_DIR}/juniper_junos/command_getter_result_1.json", "r", encoding="utf-8") as result_file:
+        with open(f"{MOCK_DIR}/juniper_junos/juniper_mx204_getter_result.json", "r", encoding="utf-8") as result_file:
             self.command_getter_result = json.load(result_file)
     
     def tearDown(self) -> None:
@@ -60,8 +60,8 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
         # Get the command configuration for interface type
         interfaces_type_config = self.command_mapper_data["sync_network_data"]["interfaces__type"]
         
-        # Test with a specific interface key (xe-0/0/0)
-        current_key = "xe-0/0/0"
+        # Test with a specific interface key (gr-0/0/0)
+        current_key = "gr-0/0/0"
         
         # Extract the first command configuration
         command_config = interfaces_type_config["commands"][0]
@@ -71,10 +71,13 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
             command_config,
             {"current_key": current_key, "obj": "192.0.2.1", "original_host": "192.0.2.1"},
             interfaces_type_config.get("iterable_type"),
-            job_debug=True,  # Enable debug logging
+            True,  # Enable debug logging
         )
+
+        self.logger.debug("Parsed result: %s", parsed_result)        
+        self.logger.debug("Processed result: %s", processed_result)
         
-        # Should extract interface type for xe-0/0/0
+        # Should extract interface type for gr-0/0/0
         self.assertIsInstance(processed_result, str)
         self.assertIn(processed_result, ["other", "lag", "ethernet"])
 
@@ -82,8 +85,8 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
         """Test extraction of interface description using command getter result."""
         interfaces_desc_config = self.command_mapper_data["sync_network_data"]["interfaces__description"]
         
-        # Test with xe-0/0/0
-        current_key = "xe-0/0/0"
+        # Test with gr-0/0/0
+        current_key = "gr-0/0/0"
         
         # Extract the first command configuration
         command_config = interfaces_desc_config["commands"][0]
@@ -112,8 +115,8 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
         """Test extraction of interface MTU using command getter result."""
         interfaces_mtu_config = self.command_mapper_data["sync_network_data"]["interfaces__mtu"]
         
-        # Test with xe-0/0/0
-        current_key = "xe-0/0/0"
+        # Test with gr-0/0/0
+        current_key = "gr-0/0/0"
         
         # Extract the first command configuration
         command_config = interfaces_mtu_config["commands"][0]
@@ -140,8 +143,8 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
         """Test extraction of interface MAC address using command getter result."""
         interfaces_mac_config = self.command_mapper_data["sync_network_data"]["interfaces__mac_address"]
         
-        # Test with xe-0/0/0
-        current_key = "xe-0/0/0"
+        # Test with gr-0/0/0
+        current_key = "gr-0/0/0"
         
         # Extract the first command configuration
         command_config = interfaces_mac_config["commands"][0]
@@ -161,8 +164,8 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
         """Test extraction of interface link status using command getter result."""
         interfaces_status_config = self.command_mapper_data["sync_network_data"]["interfaces__link_status"]
         
-        # Test with xe-0/0/0
-        current_key = "xe-0/0/0"
+        # Test with gr-0/0/0
+        current_key = "gr-0/0/0"
         
         # Extract the first command configuration
         command_config = interfaces_status_config["commands"][0]
@@ -183,8 +186,8 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
         """Test extraction of interface LAG membership using command getter result."""
         interfaces_lag_config = self.command_mapper_data["sync_network_data"]["interfaces__lag"]
         
-        # Test with xe-0/0/0 (which should be in ae25 based on the config data)
-        current_key = "xe-0/0/0"
+        # Test with gr-0/0/0 (which should be in ae25 based on the config data)
+        current_key = "gr-0/0/0"
         
         # Extract the first command configuration
         command_config = interfaces_lag_config["commands"][0]
@@ -356,7 +359,7 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
         interfaces_type_config = self.command_mapper_data["sync_network_data"]["interfaces__type"]
         
         # Test different interface types from the command getter result
-        test_interfaces = ["xe-0/0/0", "xe-0/0/1", "xe-0/0/2", "ae25", "lo0"]
+        test_interfaces = ["gr-0/0/0", "xe-0/0/1", "xe-0/0/2", "ae25", "lo0"]
         
         for interface in test_interfaces:
             with self.subTest(interface=interface):
