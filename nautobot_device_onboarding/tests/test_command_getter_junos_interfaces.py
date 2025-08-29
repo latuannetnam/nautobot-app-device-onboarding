@@ -28,7 +28,7 @@ class TestJuniperJunosInterfaceExtractors(unittest.TestCase):
             self.command_mapper_data = yaml.safe_load(mapper_file)
         
         # Load interface command getter result
-        with open(f"{MOCK_DIR}/juniper_junos/juniper_mx204_show_interface_getter_result.json", "r", encoding="utf-8") as result_file:
+        with open(f"{MOCK_DIR}/juniper_mx204/juniper_mx204_show_interface_getter_result.json", "r", encoding="utf-8") as result_file:
             self.interface_result = json.load(result_file)
     
     def tearDown(self) -> None:
