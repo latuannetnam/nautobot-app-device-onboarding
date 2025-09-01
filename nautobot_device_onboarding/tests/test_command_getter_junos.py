@@ -47,7 +47,7 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
             self.command_mapper_data = yaml.safe_load(mapper_file)
         
         # Load command getter result
-        with open(f"{MOCK_DIR}/juniper_junos/juniper_mx204_getter_result.json", "r", encoding="utf-8") as result_file:
+        with open(f"{MOCK_DIR}/juniper_mx204/juniper_mx204_getter_result.json", "r", encoding="utf-8") as result_file:
             self.command_getter_result = json.load(result_file)
     
     def tearDown(self) -> None:
@@ -76,7 +76,7 @@ class TestJuniperJunosCommandGetterExtraction(BaseCommandGetterTest):
 
         self.logger.debug("Parsed result: %s", parsed_result)        
         self.logger.debug("Processed result: %s", processed_result)
-        
+
         # Should extract interface type for gr-0/0/0
         self.assertIsInstance(processed_result, str)
         self.assertIn(processed_result, ["other", "lag", "ethernet"])

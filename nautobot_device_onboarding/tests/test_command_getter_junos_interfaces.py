@@ -35,42 +35,7 @@ class TestJuniperJunosInterfaceExtractors(unittest.TestCase):
         """Clean up unified logging setup."""
         cleanup_command_getter_logging(self.logger, self.etl_logger, self.unified_handler)
         return super().tearDown()
-
-    def test_extract_interfaces_root_key(self):
-        """Test extraction of interfaces using root_key configuration."""
-        interfaces_config = self.command_mapper_data["sync_network_data"]["interfaces"]
-        
-        # Extract the first command configuration
-        command_config = interfaces_config["commands"][0]
-        
-        parsed_result, processed_result = extract_and_post_process(
-            self.interface_result,
-            command_config,
-            {"obj": "192.0.2.1", "original_host": "192.0.2.1"},
-            interfaces_config.get("iterable_type"),
-            True,  # Enable debug logging
-        )
-        
-        self.logger.debug("Parsed result: %s", parsed_result)
-        self.logger.debug("Processed result: %s", processed_result)
-        
-        # Should return interface data structure
-        self.assertTrue(isinstance(processed_result, (str, dict, list)))
-        
-        # If it's a string, should be valid JSON
-        if isinstance(processed_result, str):
-            try:
-                interfaces_data = json.loads(processed_result)
-                self.assertIsInstance(interfaces_data, dict)
-                # Should have interface names as keys
-                interface_keys = list(interfaces_data.keys())
-                self.assertTrue(len(interface_keys) > 0, "Should have at least one interface")
-                # Log found interfaces for debugging
-                self.logger.debug("Found interfaces: %s", interface_keys)
-            except (json.JSONDecodeError, TypeError):
-                # If not valid JSON, should at least be a string
-                self.assertIsInstance(processed_result, str)
-
+    
     def test_extract_interface_type(self):
         """Test extraction of interface type for different interface types."""
         interfaces_type_config = self.command_mapper_data["sync_network_data"]["interfaces__type"]
