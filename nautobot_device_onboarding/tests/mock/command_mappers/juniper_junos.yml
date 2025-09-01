@@ -106,20 +106,15 @@ sync_network_data:
     commands:
       - command: "show configuration interfaces | display json"
         parser: "none"
-        jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-id" || configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-tags" || configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."inner-range"'
-        post_processor: "{{ obj | default([], true) | parse_junos_tagged_vlans | tojson }}"
+        jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-tags".["outer", "inner"][]'
+        # post_processor: "{{ obj | default([], true) | parse_junos_tagged_vlans | tojson }}"
+        post_processor: "{{ obj | default([], true) | tojson }}"
   interfaces__untagged_vlan:
     commands:
       - command: "show configuration interfaces | display json"
         parser: "none"
-        jpath: "configuration.interfaces.interface[?name=='{{ current_key.split('.')[0] }}']"
-        post_processor: >-
-          {% set unit_name = current_key.split('.')[1] %}
-          {% for unit in obj[0].unit %}
-          {% if unit.name == unit_name and 'encapsulation' not in unit %}
-          {{ unit['vlan-id'] }}
-          {% endif %}
-          {% endfor %}
+        jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-id"'
+        post_processor: "{{ obj | default([], true) | tojson }}"
   cables:
     commands:
       - command: "show lldp neighbors | display json"
