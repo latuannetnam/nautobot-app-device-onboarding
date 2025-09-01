@@ -214,3 +214,23 @@ def junos_get_valid_interfaces(interfaces):
             for unit in interface["units"]:
                 result[f"{interface['name']}.{unit}"] = {}
     return result
+
+
+@library.filter
+def parse_junos_tagged_vlans(vlans):
+    """Parse various Juniper VLAN formats into a list of VLAN IDs."""
+    if not isinstance(vlans, list):
+        return []
+
+    vlan_list = []
+    for item in vlans:
+        if isinstance(item, str):
+            if "-" in item:
+                start, end = item.split("-")
+                vlan_list.extend(range(int(start), int(end) + 1))
+            else:
+                vlan_list.append(int(item))
+        elif isinstance(item, int):
+            vlan_list.append(item)
+
+    return sorted(list(set(vlan_list)))

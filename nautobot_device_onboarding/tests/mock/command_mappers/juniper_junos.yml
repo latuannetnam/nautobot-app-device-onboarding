@@ -104,16 +104,22 @@ sync_network_data:
   # Vlans on JUNOS are a bit hit or miss show ethernet-switching vs show vlans vs neither working also in most cases JUNOS aren't used in access land.
   interfaces__tagged_vlans:
     commands:
-      - command: "show vlans | display json"
-        parser: "textfsm"
-        jpath: "[?contains(interfaces, `{{ current_key }}`*)].{admin_mode: admin_mode, mode: mode, access_vlan: access_vlan, trunking_vlans: trunking_vlans, native_vlan: native_vlan}"
-        post_processor: "{{ obj | get_vlan_data(vlan_map, 'tagged') | tojson }}"
+      - command: "show configuration interfaces | display json"
+        parser: "none"
+        jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-id" || configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-tags" || configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."inner-range"'
+        post_processor: "{{ obj | default([], true) | parse_junos_tagged_vlans | tojson }}"
   interfaces__untagged_vlan:
     commands:
-      - command: "show vlans | display json"
-        parser: "textfsm"
-        jpath: "[?contains(interfaces, `{{ current_key }}`*)].{admin_mode: admin_mode, mode: mode, access_vlan: access_vlan, trunking_vlans: trunking_vlans, native_vlan: native_vlan}"
-        post_processor: "{{ obj | get_vlan_data(vlan_map, 'untagged') | tojson }}"
+      - command: "show configuration interfaces | display json"
+        parser: "none"
+        jpath: "configuration.interfaces.interface[?name=='{{ current_key.split('.')[0] }}']"
+        post_processor: >-
+          {% set unit_name = current_key.split('.')[1] %}
+          {% for unit in obj[0].unit %}
+          {% if unit.name == unit_name and 'encapsulation' not in unit %}
+          {{ unit['vlan-id'] }}
+          {% endif %}
+          {% endfor %}
   cables:
     commands:
       - command: "show lldp neighbors | display json"
