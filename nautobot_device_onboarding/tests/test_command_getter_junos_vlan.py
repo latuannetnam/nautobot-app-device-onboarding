@@ -62,7 +62,7 @@ class TestJuniperJunosInterfaceVLANExtractors(unittest.TestCase):
                     self.logger.info("Interface: %s, Tagged VLANs result: %s", interface, processed_result)
                     
                     # Should return VLAN data or empty result
-                    self.assertTrue(isinstance(processed_result, (str, list, dict, int)))
+                    self.assertTrue(isinstance(processed_result, (str, list, dict)))
                     
                 except Exception as e:
                     # If extraction fails due to template or data issues, that's acceptable
@@ -76,10 +76,11 @@ class TestJuniperJunosInterfaceVLANExtractors(unittest.TestCase):
             
         interfaces_vlan_config = self.command_mapper_data["sync_network_data"]["interfaces__untagged_vlan"]
         command_config = interfaces_vlan_config["commands"][0]
-        
+        self.logger.debug("interfaces_vlan_config: %s", interfaces_vlan_config)
         # Test interfaces that have no VLAN configuration (untagged)
         # test_interfaces = ["ae0.240", "ae11.100"]
         test_interfaces = ["ae10", "ae0"]
+        # test_interfaces = ["ae0"]
         
         for interface in test_interfaces:
             with self.subTest(interface=interface):
@@ -95,7 +96,7 @@ class TestJuniperJunosInterfaceVLANExtractors(unittest.TestCase):
                     self.logger.info("Interface: %s, Untagged VLAN result: %s", interface, processed_result)
                     
                     # Should return VLAN data or empty result
-                    self.assertTrue(isinstance(processed_result, (str, list, dict, int)))
+                    self.assertTrue(isinstance(processed_result, (str, list, dict)))
                     
                 except Exception as e:
                     # If extraction fails due to template or data issues, that's acceptable

@@ -106,15 +106,16 @@ sync_network_data:
     commands:
       - command: "show configuration interfaces | display json"
         parser: "none"
-        jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-tags".["outer", "inner"][]'
-        # post_processor: "{{ obj | default([], true) | parse_junos_tagged_vlans | tojson }}"
+        jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-tags".["outer", "inner"][]  | [].to_string(@)'
         post_processor: "{{ obj | default([], true) | tojson }}"
+        iterable_type: "list"
   interfaces__untagged_vlan:
     commands:
       - command: "show configuration interfaces | display json"
         parser: "none"
-        jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-id"'
+        jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-id" | [].to_string(@)'
         post_processor: "{{ obj | default([], true) | tojson }}"
+        iterable_type: "list"
   cables:
     commands:
       - command: "show lldp neighbors | display json"

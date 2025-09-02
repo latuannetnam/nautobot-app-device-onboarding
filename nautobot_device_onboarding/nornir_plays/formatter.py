@@ -116,8 +116,8 @@ def extract_and_post_process(parsed_command_output, yaml_command_element, j2_dat
     else:
         extracted_processed = extracted_value
     post_processed_data = normalize_processed_data(extracted_processed, iter_type)
-    logger.debug("Pre Processed Extracted: %s", pre_processed_extracted)
-    logger.debug("Post Processed Data: %s", post_processed_data)
+    logger.debug("Pre Processed Extracted: %s %s", pre_processed_extracted, type(pre_processed_extracted))
+    logger.debug("Post Processed Data: %s %s", post_processed_data, type(post_processed_data))
     return pre_processed_extracted, post_processed_data
 
 
