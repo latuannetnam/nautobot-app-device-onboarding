@@ -32,6 +32,13 @@ sync_devices:
         post_processor: "{{ obj[0].split('/')[1] }}"
         iterable_type: "int"
 sync_network_data:
+  pre_processor:
+      vlan_map:
+        commands:
+          - command: "show configuration interfaces | display json"
+            parser: "none"
+            jpath: "vlans"
+            post_processor: "{{ obj | flatten_dict_from_value('name') | tojson }}"
   serial:
     commands:
       - command: "show system information | display json"
@@ -106,15 +113,15 @@ sync_network_data:
     commands:
       - command: "show configuration interfaces | display json"
         parser: "none"
-        jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-tags".["outer", "inner"][]  | [].to_string(@)'
-        post_processor: "{{ obj | default([], true) | tojson }}"
+        jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-tags".["outer", "inner"][]'
+        post_processor: "{{ obj | get_vlan_data(vlan_map, 'tagged') | tojson }}"
         iterable_type: "list"
   interfaces__untagged_vlan:
     commands:
       - command: "show configuration interfaces | display json"
         parser: "none"
         jpath: 'configuration.interfaces.interface[?name==`{{ current_key.split(''.'')[0] }}`].unit[]."vlan-id" | [].to_string(@)'
-        post_processor: "{{ obj | default([], true) | tojson }}"
+        post_processor: "{{ obj | get_vlan_data(vlan_map, 'untagged') | tojson }}"
         iterable_type: "list"
   cables:
     commands:
