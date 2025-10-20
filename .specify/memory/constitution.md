@@ -1,50 +1,43 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+&lt;!--
+## Sync Impact Report
+
+- **Version change**: none → 1.0.0
+- **Added Principles**:
+    - I. Extensibility and Modularity
+    - II. Vendor-Agnosticism
+    - III. Idempotency
+    - IV. Comprehensive Data Collection
+    - V. Clear and Actionable Logging
+- **Templates requiring updates**:
+    - ✅ .specify/templates/plan-template.md
+    - ✅ .specify/templates/spec-template.md
+    - ✅ .specify/templates/tasks-template.md
+--&gt;
+# Nautobot Device Onboarding Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Extensibility and Modularity
+The application MUST be designed to be easily extensible to support new device types and platforms. All platform-specific logic SHOULD be encapsulated in separate modules to facilitate the addition of new platforms without requiring modifications to the core application logic.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Vendor-Agnosticism
+The application SHOULD strive to be vendor-agnostic, relying on standardized protocols and libraries like NAPALM and Netmiko whenever possible. This approach ensures that the application can support a wide range of devices from different vendors.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Idempotency
+Onboarding operations MUST be idempotent. This means that running the same onboarding operation multiple times with the same input will not result in the creation of duplicate objects or generate errors. The application should intelligently handle existing objects and update them as necessary.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Comprehensive Data Collection
+The application MUST collect a comprehensive set of data from the device, including but not limited to, interfaces, IP addresses, VLANs, and device hardware information. The collected data should be sufficient to create a complete and accurate representation of the device in Nautobot.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Clear and Actionable Logging
+The application MUST provide clear and actionable logging. Log messages should be informative and provide sufficient context to help users diagnose and troubleshoot issues. All log messages SHOULD be written to a centralized logging system for easy access and analysis.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Development Workflow
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+All contributions to the application MUST follow the established development workflow. This includes requirements for code reviews, testing, and documentation. All code changes MUST be submitted as pull requests and reviewed by at least one other developer before being merged.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other practices. All pull requests and reviews must verify compliance with the principles outlined in this document. Any proposed changes to this constitution must be submitted as a pull request and approved by the project maintainers.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2025-10-20 | **Last Amended**: 2025-10-20

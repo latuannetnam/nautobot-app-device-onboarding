@@ -31,7 +31,11 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- **Extensibility and Modularity**: Does the plan account for future expansion to support new device types and platforms?
+- **Vendor-Agnosticism**: Does the plan prioritize the use of vendor-agnostic libraries and protocols?
+- **Idempotency**: Does the plan include measures to ensure that all operations are idempotent?
+- **Comprehensive Data Collection**: Does the plan specify the collection of all necessary data from the device?
+- **Clear and Actionable Logging**: Does the plan include requirements for clear and actionable logging?
 
 ## Project Structure
 

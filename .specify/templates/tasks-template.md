@@ -154,6 +154,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
 
+- [ ] TXXX Verify compliance with the project constitution
 ---
 
 ## Dependencies & Execution Order

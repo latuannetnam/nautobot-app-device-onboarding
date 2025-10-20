@@ -114,3 +114,10 @@
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
 
+## Constitution Alignment
+
+*   **Extensibility and Modularity**: How does this feature support extensibility and modularity?
+*   **Vendor-Agnosticism**: How does this feature promote vendor-agnosticism?
+*   **Idempotency**: How does this feature ensure idempotency?
+*   **Comprehensive Data Collection**: How does this feature contribute to comprehensive data collection?
+*   **Clear and Actionable Logging**: How does this feature ensure clear and actionable logging?
