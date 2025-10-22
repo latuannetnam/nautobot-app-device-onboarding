@@ -6,5 +6,5 @@
 # invoke unittest --no-buffer -f -k -s -v -l nautobot_device_onboarding.tests.test_command_getter_junos
 # invoke unittest --no-buffer -f -k -s -v -l nautobot_device_onboarding.tests.test_command_getter_junos_interfaces
 # invoke unittest --no-buffer -f -k -s -v -l nautobot_device_onboarding.tests.test_command_getter_junos_interfaces.TestJuniperJunosInterfaceExtractors
-poetry run invoke unittest --no-buffer -f -k -s -v -l nautobot_device_onboarding.tests.test_jobs.SSOTSyncDevicesTestCase
-# invoke unittest --no-buffer -f -k -s -v -l nautobot_device_onboarding.tests.test_command_getter_junos_vlan
+# poetry run invoke unittest --no-buffer -f -k -s -v -l nautobot_device_onboarding.tests.test_refactor_jobs.SSOTSyncDevicesTestCase
+poetry run invoke unittest --no-buffer -f -s -v -l nautobot_device_onboarding.tests.test_refactor_jobs.SSOTSyncDevicesTestCase

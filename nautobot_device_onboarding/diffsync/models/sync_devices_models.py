@@ -12,6 +12,9 @@ from nautobot_ssot.contrib import NautobotModel
 
 from nautobot_device_onboarding.utils import diffsync_utils
 
+# netmam-cms-core
+from netnam_cms_core.models import JuniperInterfaceUnit
+
 
 class SyncDevicesDevice(DiffSyncModel):
     """Diffsync model for device data."""
@@ -99,14 +102,29 @@ class SyncDevicesDevice(DiffSyncModel):
     def _get_or_create_interface(cls, adapter, device, ip_address, interface_name):
         """Attempt to get a Device Interface, create a new one if necessary."""
         device_interface = None
+        # netnam-cms-core: Ensure JuniperInterfaceUnit wrapper is created along with Interface
+        juniper_unit = None
         try:
+            # First, try to get existing interface
             device_interface = Interface.objects.get(
                 name=interface_name,
                 device=device,
             )
+            
+            # Ensure it has a JuniperInterfaceUnit wrapper
+            juniper_unit = cls._get_or_create_juniper_interface_unit(adapter, device_interface)
+            
+            if adapter.job.debug:
+                adapter.job.logger.debug(
+                    f"Found existing interface {interface_name} on device {device.name}"
+                )
+
         except ObjectDoesNotExist:
+            # Interface doesn't exist - create both Interface and JuniperInterfaceUnit
             try:
                 job_form_attrs = adapter.job.ip_address_inventory[ip_address]
+                
+                # Create the base Interface
                 device_interface = Interface(
                     name=interface_name,
                     mgmt_only=job_form_attrs["set_mgmt_only"],
@@ -115,8 +133,20 @@ class SyncDevicesDevice(DiffSyncModel):
                     device=device,
                 )
                 device_interface.validated_save()
+                
+                # Create the JuniperInterfaceUnit wrapper
+                juniper_unit = cls._get_or_create_juniper_interface_unit(adapter, device_interface)
+                
+                if adapter.job.debug:
+                    adapter.job.logger.debug(
+                        f"Created new interface {interface_name} with JuniperInterfaceUnit wrapper "
+                        f"on device {device.name}"
+                    )
+            
             except Exception as err:
-                adapter.job.logger.error(f"Device Interface could not be created, {err}")
+                adapter.job.logger.error(
+                    f"Device Interface could not be created for {interface_name} on {device.name}: {err}"
+                )
         return device_interface
 
     @classmethod
@@ -311,6 +341,46 @@ class SyncDevicesDevice(DiffSyncModel):
         except ValidationError as err:
             self.adapter.job.logger.error(f"Device {device.name} failed to update, {err}")
         return super().update(attrs)
+    
+    @classmethod
+    def _get_or_create_juniper_interface_unit(cls, adapter, interface):
+        """
+        netnam-cms-core:
+        Get or create a JuniperInterfaceUnit wrapper for an Interface.
+        
+        Args:
+            adapter: The DiffSync adapter
+            interface: The nautobot.dcim.models.Interface object
+            
+        Returns:
+            JuniperInterfaceUnit: The wrapper object
+        """
+        try:
+            juniper_unit = JuniperInterfaceUnit.objects.get(interface=interface)
+            if adapter.job.debug:
+                adapter.job.logger.debug(
+                    f"Found existing JuniperInterfaceUnit for interface {interface.name}"
+                )
+        except JuniperInterfaceUnit.DoesNotExist:
+            try:
+                juniper_unit = JuniperInterfaceUnit(
+                    interface=interface,
+                    enabled=True,
+                    # Set default values for Juniper-specific fields
+                    # These can be populated later by SSOTSyncNetworkData
+                )
+                juniper_unit.validated_save()
+                if adapter.job.debug:
+                    adapter.job.logger.debug(
+                        f"Created new JuniperInterfaceUnit for interface {interface.name}"
+                    )
+            except Exception as err:
+                adapter.job.logger.error(
+                    f"Failed to create JuniperInterfaceUnit for {interface.name}: {err}"
+                )
+                raise
+        
+        return juniper_unit
 
 
 class SyncDevicesDeviceType(NautobotModel):

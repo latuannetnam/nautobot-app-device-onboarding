@@ -15,6 +15,8 @@ from nautobot_device_onboarding.nornir_plays.command_getter import (
 )
 from nautobot_device_onboarding.utils import diffsync_utils
 
+from netnam_cms_core.models import JuniperInterfaceUnit
+
 ParameterSet = FrozenSet[Tuple[str, Hashable]]
 
 
@@ -112,7 +114,24 @@ class SyncDevicesNautobotAdapter(diffsync.Adapter):
             # interface syncs in the future.
             for interface in device.interfaces.all():
                 if device.primary_ip4 in interface.ip_addresses.all():
-                    interface_list.append(interface.name)
+                    # netmam-cms-core:
+                    # Optionally verify/create JuniperInterfaceUnit wrapper
+                    # (This is optional - we can defer creation to _get_or_create_interface)
+                    try:
+                        juniper_unit = interface.juniperinterfaceunit
+                        interface_list.append(juniper_unit.interface.name)
+                        if self.job.debug:
+                            self.job.logger.debug(
+                                f"Found JuniperInterfaceUnit for {interface.name} on {device.name}"
+                            )
+                    except JuniperInterfaceUnit.DoesNotExist:
+                        # Interface exists but no JuniperInterfaceUnit - add interface name anyway
+                        interface_list.append(interface.name)
+                        if self.job.debug:
+                            self.job.logger.debug(
+                                f"Interface {interface.name} on {device.name} has no JuniperInterfaceUnit wrapper"
+                            )
+                            
             if interface_list:
                 interface_list.sort()
                 interfaces = [interface_list[0]]

@@ -1,5 +1,6 @@
 """Testing utilites."""
-
+import logging
+import sys
 from django.contrib.contenttypes.models import ContentType
 from nautobot.circuits.models import Circuit, CircuitTermination, CircuitType, Provider
 from nautobot.dcim.choices import InterfaceModeChoices, InterfaceTypeChoices
@@ -406,3 +407,58 @@ def sync_devices_ensure_required_nautobot_objects__jobs_testing():
     testing_objects["device_role"] = device_role
 
     return testing_objects
+
+def setup_logging(test_class_module_name):
+    """Utility function to set up unified logging for tests.
+    
+    This function can be imported and used by other test files to maintain
+    consistent logging configuration across the test suite.
+    
+    Args:
+        test_class_module_name (str): The module name of the test class (e.g., __name__)
+        
+    Returns:
+        tuple: (main_logger, etl_logger, handler) for cleanup purposes
+        
+    Example:
+        # In another test file:
+        from nautobot_device_onboarding.tests.utils import setup_command_getter_logging
+        
+        def setUp(self):
+            self.logger, self.etl_logger, self.handler = setup_logging(__name__)
+    """
+    # Create unified handler with enhanced formatting
+    handler = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter('[%(name)s] %(levelname)s: %(message)s')
+    handler.setFormatter(formatter)
+    
+    # Configure main test logger
+    main_logger = logging.getLogger(test_class_module_name)
+    main_logger.setLevel(logging.DEBUG)
+    if handler not in main_logger.handlers:
+        main_logger.addHandler(handler)
+    
+    # Configure ETL logger for extract_and_post_process
+    etl_logger = logging.getLogger("DEVICE_ONBOARDING_ETL_LOGGER")
+    etl_logger.setLevel(logging.DEBUG)
+    if handler not in etl_logger.handlers:
+        etl_logger.addHandler(handler)
+    
+    # Prevent log propagation to avoid duplicate messages
+    etl_logger.propagate = False
+    
+    return main_logger, etl_logger, handler
+
+
+def cleanup_logging(main_logger, etl_logger, handler):
+    """Utility function to clean up unified logging setup.
+    
+    Args:
+        main_logger: The main test logger
+        etl_logger: The ETL process logger  
+        handler: The shared logging handler
+    """
+    if handler in main_logger.handlers:
+        main_logger.removeHandler(handler)
+    if handler in etl_logger.handlers:
+        etl_logger.removeHandler(handler)
