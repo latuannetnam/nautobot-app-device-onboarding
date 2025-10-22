@@ -2802,7 +2802,7 @@ optional = false
 python-versions = ">=3.9.2,<3.13"
 groups = ["main"]
 files = [
-    {file = "netnam_cms_core-0.1.0.tar.gz", hash = "sha256:d3464a34c9dbbd65d40e14181e2df0cd177f53073ed13592eedf37440aeff129"},
+    {file = "netnam_cms_core-0.1.0.tar.gz", hash = "sha256:21e7c817ab5071177a74e635e5e4267d6feb37b5295f91f6bdc95cf6dbbb4f7c"},
 ]
 
 [package.dependencies]
@@ -5448,4 +5448,4 @@ all = []
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9.2,<3.13"
-content-hash = "62e5b2ea062d20d58ebb14e46d8ce8575a75d346b348d626df6a4ead226e42ce"
+content-hash = "e11161daea8c80cff34e4d7a03fcafc0cd3a5c0851977c06db153b53d9f3eb7a"
