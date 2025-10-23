@@ -19,6 +19,9 @@ from nautobot_ssot.contrib import CustomFieldAnnotation, NautobotModel
 
 from nautobot_device_onboarding.utils import diffsync_utils
 
+# netnam-cms-core
+from netnam_cms_core.models import JuniperInterfaceUnit
+
 
 class FilteredNautobotModel(NautobotModel):
     """
@@ -43,6 +46,45 @@ class FilteredNautobotModel(NautobotModel):
         # Replace return with a filtered queryset.
         # Access the job form inputs with adapter ex: adapter.job.location.name
         return cls._model.objects.all()
+
+    @staticmethod
+    def _get_or_create_juniper_interface_unit(adapter, interface):
+        """
+        netnam-cms-core:
+        Get or create a JuniperInterfaceUnit wrapper for an Interface.
+        
+        Args:
+            adapter: The DiffSync adapter
+            interface: The nautobot.dcim.models.Interface object
+            
+        Returns:
+            JuniperInterfaceUnit: The wrapper object
+        """
+        try:
+            juniper_unit = JuniperInterfaceUnit.objects.get(interface=interface)
+            if hasattr(adapter, 'job') and hasattr(adapter.job, 'debug') and adapter.job.debug:
+                adapter.job.logger.debug(
+                    f"Found existing JuniperInterfaceUnit for interface {interface.name}"
+                )
+        except JuniperInterfaceUnit.DoesNotExist:
+            try:
+                juniper_unit = JuniperInterfaceUnit(
+                    interface=interface,
+                    enabled=True,
+                )
+                juniper_unit.validated_save()
+                if hasattr(adapter, 'job') and hasattr(adapter.job, 'debug') and adapter.job.debug:
+                    adapter.job.logger.debug(
+                        f"Created new JuniperInterfaceUnit for interface {interface.name}"
+                    )
+            except Exception as err:
+                if hasattr(adapter, 'job') and hasattr(adapter.job, 'logger'):
+                    adapter.job.logger.error(
+                        f"Failed to create JuniperInterfaceUnit for {interface.name}: {err}"
+                    )
+                raise
+        
+        return juniper_unit
 
 
 class SyncNetworkDataDevice(FilteredNautobotModel):
@@ -129,6 +171,38 @@ class SyncNetworkDataInterface(FilteredNautobotModel):
     enabled: Optional[bool] = None
     description: Optional[str] = None
 
+    @classmethod
+    def create(cls, adapter, ids, attrs):
+        """Create an Interface and its JuniperInterfaceUnit wrapper."""
+        # Let DiffSync create the Interface object
+        super().create(adapter, ids, attrs)
+
+        # Get the newly created Interface object and ensure the Juniper wrapper exists
+        try:
+            interface = cls._model.objects.get(**ids)
+            cls._get_or_create_juniper_interface_unit(adapter, interface)
+        except (ObjectDoesNotExist, MultipleObjectsReturned) as err:
+            adapter.job.logger.warning(
+                f"Unable to find newly created interface with ids: {ids}. Error: {err}"
+            )
+
+        return
+
+    def update(self, attrs):
+        """Update an Interface and ensure its JuniperInterfaceUnit wrapper exists."""
+        # Let DiffSync update the Interface object
+        super().update(attrs)
+
+        # Get the Interface object and ensure the Juniper wrapper exists
+        try:
+            interface = self._model.objects.get(**self.get_identifiers())
+            self._get_or_create_juniper_interface_unit(self.adapter, interface)
+        except (ObjectDoesNotExist, MultipleObjectsReturned) as err:
+            self.adapter.job.logger.warning(
+                f"Unable to find existing interface with identifiers: {self.get_identifiers()}. Error: {err}"
+            )
+
+        return
 
 class SyncNetworkDataIPAddress(DiffSyncModel):
     """Shared data model representing an IPAddress."""

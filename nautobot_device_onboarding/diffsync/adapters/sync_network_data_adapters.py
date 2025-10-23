@@ -13,6 +13,7 @@ from nautobot.ipam.models import VLAN, VRF, IPAddress
 from nautobot_ssot.contrib import NautobotAdapter
 from netaddr import EUI, mac_unix_expanded
 from netutils.interface import canonical_interface_name
+from netnam_cms_core.models import JuniperInterfaceUnit
 
 from nautobot_device_onboarding.diffsync.models import sync_network_data_models
 from nautobot_device_onboarding.nornir_plays.command_getter import (
@@ -96,6 +97,30 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
             return str(database_object.mtu)
         return ""
 
+    def _get_interface_name(self, interface):
+        """
+        Get the interface name, checking for JuniperInterfaceUnit wrapper.
+
+        If the interface has a JuniperInterfaceUnit wrapper, return the wrapped interface name.
+        Otherwise, return the interface name directly.
+        """
+        try:
+            juniper_unit = interface.juniperinterfaceunit
+            interface_name = juniper_unit.interface.name
+            if self.job.debug:
+                self.job.logger.debug(
+                    f"Found JuniperInterfaceUnit for {interface.name} on {interface.device.name}, "
+                    f"using wrapped interface name: {interface_name}"
+                )
+            return interface_name
+        except JuniperInterfaceUnit.DoesNotExist:
+            # Fallback: use interface name directly
+            if self.job.debug:
+                self.job.logger.debug(
+                    f"Interface {interface.name} on {interface.device.name} has no JuniperInterfaceUnit wrapper"
+                )
+            return interface.name
+
     def load_ip_addresses(self):
         """Load IP addresses into the DiffSync store.
 
@@ -175,10 +200,11 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 tagged_vlans.append(vlan_dict)
             sorted_tagged_vlans = sorted(tagged_vlans, key=lambda x: x["id"])
 
+            interface_name = self._get_interface_name(interface)
             network_tagged_vlans_to_interface = self.tagged_vlans_to_interface(
                 adapter=self,
                 device__name=interface.device.name,
-                name=interface.name,
+                name=interface_name,
                 tagged_vlans=sorted_tagged_vlans,
             )
             network_tagged_vlans_to_interface.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
@@ -196,10 +222,11 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 untagged_vlan["name"] = interface.untagged_vlan.name
                 untagged_vlan["id"] = str(interface.untagged_vlan.vid)
 
+            interface_name = self._get_interface_name(interface)
             network_untagged_vlan_to_interface = self.untagged_vlan_to_interface(
                 adapter=self,
                 device__name=interface.device.name,
-                name=interface.name,
+                name=interface_name,
                 untagged_vlan=untagged_vlan,
             )
             network_untagged_vlan_to_interface.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
@@ -212,10 +239,11 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
         Only Lag assignments that were returned by the CommandGetter job should be synced.
         """
         for interface in Interface.objects.filter(device__in=self.job.devices_to_load):
+            interface_name = self._get_interface_name(interface)
             network_lag_to_interface = self.lag_to_interface(
                 adapter=self,
                 device__name=interface.device.name,
-                name=interface.name,
+                name=interface_name,
                 lag__interface__name=interface.lag.name if interface.lag else "",
             )
             network_lag_to_interface.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
@@ -250,10 +278,11 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
             if interface.vrf:
                 vrf["name"] = interface.vrf.name
 
+            interface_name = self._get_interface_name(interface)
             network_vrf_to_interface = self.vrf_to_interface(
                 adapter=self,
                 device__name=interface.device.name,
-                name=interface.name,
+                name=interface_name,
                 vrf=vrf,
             )
             network_vrf_to_interface.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
