@@ -175,7 +175,7 @@ class SyncNetworkDataInterface(FilteredNautobotModel):
     def create(cls, adapter, ids, attrs):
         """Create an Interface and its JuniperInterfaceUnit wrapper."""
         # Let DiffSync create the Interface object
-        super().create(adapter, ids, attrs)
+        result = super().create(adapter, ids, attrs)
 
         # Get the newly created Interface object and ensure the Juniper wrapper exists
         try:
@@ -186,12 +186,12 @@ class SyncNetworkDataInterface(FilteredNautobotModel):
                 f"Unable to find newly created interface with ids: {ids}. Error: {err}"
             )
 
-        return
+        return result
 
     def update(self, attrs):
         """Update an Interface and ensure its JuniperInterfaceUnit wrapper exists."""
         # Let DiffSync update the Interface object
-        super().update(attrs)
+        result = super().update(attrs)
 
         # Get the Interface object and ensure the Juniper wrapper exists
         try:
@@ -202,7 +202,7 @@ class SyncNetworkDataInterface(FilteredNautobotModel):
                 f"Unable to find existing interface with identifiers: {self.get_identifiers()}. Error: {err}"
             )
 
-        return
+        return result
 
 class SyncNetworkDataIPAddress(DiffSyncModel):
     """Shared data model representing an IPAddress."""
