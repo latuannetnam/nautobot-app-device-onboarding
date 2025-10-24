@@ -40,7 +40,7 @@ netutils = "^1.9.1"
 ttp = "^0.9.0"
 
 #netnam-cms-core
-netnam-cms-core = {path = "dist/netnam_cms_core-0.1.0.tar.gz"}
+netnam-cms-core = {git = "https://tsd-repo.netnam.vn/netnam-automation/netnam-cms-core.git"}
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"

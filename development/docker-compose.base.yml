@@ -4,8 +4,11 @@ x-nautobot-build: &nautobot-build
     args:
       NAUTOBOT_VER: "${NAUTOBOT_VER}"
       PYTHON_VER: "${PYTHON_VER}"
+      GITLAB_USERNAME: "${GITLAB_USERNAME}"
+      GITLAB_TOKEN: "${GITLAB_TOKEN}"
+      GITLAB_REPOSITORY: "${GITLAB_REPOSITORY}"
     context: "../"
-    dockerfile: "development/Dockerfile"
+    dockerfile: "development/Dockerfile"    
 x-nautobot-base: &nautobot-base
   image: "nautobot-device-onboarding/nautobot:${NAUTOBOT_VER}-py${PYTHON_VER}"
   env_file:
@@ -49,3 +52,4 @@ services:
     healthcheck:
       disable: true
     <<: *nautobot-base
+

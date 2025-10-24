@@ -120,12 +120,33 @@ def docker_compose(context, command, **kwargs):
         **kwargs: Passed through to the context.run() call.
     """
     _ensure_creds_env_file(context)
+    
+    # Load credentials from creds.env for docker build args
+    creds_file = os.path.join(context.nautobot_device_onboarding.compose_dir, "creds.env")
+    gitlab_username = ""
+    gitlab_token = ""
+    gitlab_repository = ""
+    
+    if os.path.exists(creds_file):
+        with open(creds_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("GITLAB_USERNAME="):
+                    gitlab_username = line.split("=", 1)[1].strip('\'"')
+                elif line.startswith("GITLAB_TOKEN="):
+                    gitlab_token = line.split("=", 1)[1].strip('\'"')
+                elif line.startswith("GITLAB_REPOSITORY="):
+                    gitlab_repository = line.split("=", 1)[1].strip('\'"')
+    
     build_env = {
         # Note: 'docker compose logs' will stop following after 60 seconds by default,
         # so we are overriding that by setting this environment variable.
         "COMPOSE_HTTP_TIMEOUT": context.nautobot_device_onboarding.compose_http_timeout,
         "NAUTOBOT_VER": context.nautobot_device_onboarding.nautobot_ver,
         "PYTHON_VER": context.nautobot_device_onboarding.python_ver,
+        "GITLAB_USERNAME": gitlab_username,
+        "GITLAB_TOKEN": gitlab_token,
+        "GITLAB_REPOSITORY": gitlab_repository,
         **kwargs.pop("env", {}),
     }
     compose_command_tokens = [

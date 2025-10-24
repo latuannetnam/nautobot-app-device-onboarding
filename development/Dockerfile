@@ -12,6 +12,10 @@ ARG NAUTOBOT_VER="2.4.2"
 # Accepts a desired Python version as build argument, default to 3.11
 ARG PYTHON_VER="3.11"
 
+# GitLab credentials for private packages
+ARG GITLAB_USERNAME
+ARG GITLAB_TOKEN
+
 # Retrieve published development image of Nautobot base which should include most CI dependencies
 FROM ghcr.io/nautobot/nautobot-dev:${NAUTOBOT_VER}-py${PYTHON_VER}
 
@@ -56,6 +60,9 @@ COPY . /source
 # Build args must be declared in each stage
 ARG NAUTOBOT_VER
 ARG PYTHON_VER
+ARG GITLAB_USERNAME
+ARG GITLAB_TOKEN
+ARG GITLAB_REPOSITORY
 
 # Constrain the Nautobot version to NAUTOBOT_VER, fall back to installing from git branch if not available on PyPi
 # In CI, this should be done outside of the Dockerfile to prevent cross-compile build failures
@@ -65,8 +72,13 @@ RUN if [ -z "${CI+x}" ]; then \
     poetry add --lock nautobot@${INSTALLED_NAUTOBOT_VER} --python ${PYTHON_VER} || \
     poetry add --lock git+https://github.com/nautobot/nautobot.git#${NAUTOBOT_VER} --python ${PYTHON_VER}; fi
 
+# Configure Poetry to use GitLab credentials for private packages
+RUN git config --global credential.helper store && \
+    echo "https://${GITLAB_USERNAME}:${GITLAB_TOKEN}@${GITLAB_REPOSITORY}" > ~/.git-credentials
+
 # Install the app
 RUN poetry install --extras all --with dev
+# RUN --mount=type=secret,id=auth_toml,required,dst=/root/.config/pypoetry/auth.toml poetry install --extras all --with dev
 
 COPY development/nautobot_config.py ${NAUTOBOT_ROOT}/nautobot_config.py
 # !!! USE CAUTION WHEN MODIFYING LINES ABOVE
